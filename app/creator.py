@@ -7,7 +7,7 @@ from param import Param
 
 
 class Selector(Meta):
-    colors = 'red', 'blue', 'black', 'purple', 'green', 'skyblue', 'yellow', 'white'
+    colors = 'red', 'blue', 'black', 'purple', 'green', 'skyblue', 'yellow', 'white', 'pink'
     shapes = 'rectangle', 'oval', 'line', 'oval_point', 'rectangle_point'
 
     def __init__(self, master=None, cnf={}, **kw):
@@ -19,6 +19,7 @@ class Selector(Meta):
         self.start, self.end = 15, 50
         self.create_color()
         self.create_shape()
+        self.dtag('graph')
 
     def create_color(self):
         '''Set the color selector'''
@@ -28,8 +29,9 @@ class Selector(Meta):
         for k, color in enumerate(Selector.colors):
             t = 7+30*(k+1)
             direction = self.start+t, self.start-20, self.end+t, self.end-20
+            tags = f"color {color}"
             self.draw_graph('rectangle', direction,
-                            'yellow', tags=color, fill=color)
+                            'yellow', tags=tags, fill=color)
         self.dtag('rectangle')
 
     def create_shape(self):
@@ -39,26 +41,34 @@ class Selector(Meta):
         for k, shape in enumerate(Selector.shapes):
             t = 7+30*(k+1)
             direction = self.start+t, self.start+20, self.end+t, self.end+20
-            width = 10 if shape == 'line' else 1
             fill = 'blue' if 'point' in shape else 'white'
-            self.draw_graph(shape.split(
-                '_')[0], direction, 'blue', width=width, tags=shape, fill=fill)
-
+            width = 10 if shape == 'line' else 1
+            kw = {
+                'width': width,
+                'fill': fill,
+                'tags': f"shape {shape}"
+            }
+            self.draw_graph(shape.split('_')[0], direction, 'blue', **kw)
+            
 
 class SelectorFrame(ttk.Frame):
-    def __init__(self, master=None, **kw):
+    color = Param()
+    graph_type = Param()
+    def __init__(self, master=None, graph_type='rectangle', color='blue', **kw):
         '''The base class of all graphics frames.
 
         :param master: a widget of tkinter or tkinter.ttk.
         '''
         super().__init__(master, **kw)
-        self.color = None
-        self.graph_type = None
-        self.selector = Selector(self, background='lightgreen')
+        self.color = color
+        self.graph_type = graph_type
+        self.selector = Selector(
+            self, background='lightgreen', width=320, height=80)
         [self.color_bind(self.selector, color) for color in Selector.colors]
+        # for graph_type in Selector.shapes:
+        #     self.selector.tag_bind(graph_type, '<1>', lambda e: self.update_graph_type(graph_type))
         [self.graph_type_bind(self.selector, graph_type)
          for graph_type in Selector.shapes]
-        self.selector.dtag('all')
         self.info_var = StringVar()
         self.info = ttk.Label(self, textvariable=self.info_var)
 
@@ -67,20 +77,21 @@ class SelectorFrame(ttk.Frame):
             text = f"You Selected: {self.color},{self.graph_type}"
             self.info_var.set(text)
 
-    def set_color(self, new_color):
+    def update_color(self, new_color):
         self.color = new_color
         self.update_info()
 
-    def set_graph_type(self, new_graph_type):
+    def update_graph_type(self, new_graph_type):
         self.graph_type = new_graph_type
         self.update_info()
 
     def color_bind(self, canvas, color):
-        canvas.tag_bind(color, '<1>', lambda e: self.set_color(color))
+        canvas.tag_bind(color, '<1>', lambda e: self.update_color(color))
 
     def graph_type_bind(self, canvas, graph_type):
+
         canvas.tag_bind(graph_type, '<1>',
-                        lambda e: self.set_graph_type(graph_type))
+                        lambda e: self.update_graph_type(graph_type))
 
     def layout(self):
         self.selector.grid(row=0, column=0)

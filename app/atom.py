@@ -53,8 +53,9 @@ class Meta(Canvas):
         if graph_type in ('rectangle', 'oval', 'line', 'arc'):
             func = eval(f"self.create_{graph_type}")
             graph_id = func(direction, **kwargs)
-            [self.addtag_withtag(tag, graph_id)
-             for tag in ('graph', graph_type)]
+            if tags is None:
+                [self.addtag_withtag(tag, graph_id)
+                for tag in ('graph', graph_type)]
         else:
             graph_id = None
         return graph_id
