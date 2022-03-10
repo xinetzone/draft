@@ -34,8 +34,7 @@ class Drawing(Meta):
     def get_bbox(self, event):
         x0, y0 = self.x, self.y  # The upper-left coordinates of the graph
         x1, y1 = event.x, event.y  # Lower-right coordinates of the graph
-        bbox = x0, y0, x1, y1
-        return bbox
+        return x0, y0, x1, y1
 
     def draw(self, event):
         '''Release the left mouse button to finish painting.'''
